@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: ages,
                 datasets: [
                     {
-                        label: 'Paciente (Você)',
+                        label: currentLang.code === 'pt' ? 'Paciente' : 'Patient',
                         data: patientData,
                         backgroundColor: '#ef4444',
                         borderColor: '#ef4444',
@@ -282,29 +282,51 @@ document.addEventListener('DOMContentLoaded', () => {
                         display: true,
                         text: titleText,
                         color: '#002855',
-                        font: { family: 'Inter', size: 14 }
+                        font: { family: 'Inter', size: 14, weight: '600' },
+                        padding: { top: 4, bottom: 12 }
                     },
                     legend: {
                         position: 'bottom',
                         labels: {
                             usePointStyle: true,
-                            boxWidth: 8
+                            boxWidth: 8,
+                            padding: 14
                         }
+                    }
+                },
+                layout: {
+                    padding: {
+                        left: 8,
+                        right: 12,
+                        top: 4,
+                        bottom: 0
                     }
                 },
                 scales: {
                     x: {
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.12)'
+                        },
+                        ticks: {
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 12
+                        },
                         title: {
                             display: true,
                             text: translations[currentLang.code].ageLabel
                         }
                     },
                     y: {
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.12)'
+                        },
                         title: {
                             display: true,
                             text: 'IGF-1 (ng/mL)'
                         },
-                        min: 0
+                        beginAtZero: true,
+                        grace: '8%'
                     }
                 }
             }

@@ -45,6 +45,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -52,22 +53,33 @@ header {
     display: flex;
     align-items: center;
     gap: 1rem;
+    min-width: 0;
 }
 
-/* Novo Nordisk Logo SVG styling */
+/* Novo Nordisk logo from assets */
 .nn-logo {
-    height: 40px;
-    fill: var(--nn-white);
+    height: 54px;
+    width: auto;
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: brightness(0) invert(1);
+}
+
+.header-text {
+    min-width: 0;
 }
 
 .header-text h1 {
     font-size: 1.5rem;
     font-weight: 700;
+    line-height: 1.15;
 }
 
 .header-text p {
     font-size: 0.9rem;
     opacity: 0.8;
+    margin-top: 0.3rem;
 }
 
 .lang-selector {
@@ -335,14 +347,20 @@ button.calculate-btn:hover {
 
 /* Chart Container */
 .chart-container {
-    margin-top: 2.5rem;
+    margin: 2.5rem auto 0;
     position: relative;
-    height: 300px;
     width: 100%;
+    max-width: 560px;
+    height: clamp(280px, 42vw, 360px);
     background: #ffffff;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     padding: 1rem;
     border: 1px solid #e5e7eb;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Info Panel Styles */
@@ -385,6 +403,55 @@ button.calculate-btn:hover {
 
 .cnnhc-notice strong {
     color: #713f12;
+}
+
+
+
+@media (max-width: 820px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .lang-selector {
+        align-self: flex-end;
+    }
+
+    .nn-logo {
+        height: 46px;
+    }
+
+    .chart-container {
+        max-width: 100%;
+        height: clamp(260px, 58vw, 340px);
+    }
+}
+
+@media (max-width: 560px) {
+    header {
+        padding: 1rem;
+    }
+
+    .logo-container {
+        align-items: flex-start;
+    }
+
+    .header-text h1 {
+        font-size: 1.25rem;
+    }
+
+    .header-text p {
+        font-size: 0.85rem;
+    }
+
+    .nn-logo {
+        height: 42px;
+    }
+
+    .chart-container {
+        height: 260px;
+        padding: 0.75rem;
+    }
 }
 
 footer {

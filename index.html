@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora SDS IGF-1 | Relatório PDF</title>
+    <meta name="description" content="Calculadora de Score de Desvio Padrão (SDS) do IGF-1 com relatório PDF contendo parâmetros, resultados e gráfico.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for Percentile Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for robust direct PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2pdf kept as a fallback for older browsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo-container">
+            <!-- Official Novo Nordisk Logo from Assets -->
+            <img src="assets/logo.png" alt="Novo Nordisk" class="nn-logo">
+            <div class="header-text">
+                <h1 data-i18n="appTitle">Calculadora SDS IGF-1</h1>
+                <p data-i18n="appSubtitle">Cálculo Científico do Score de Desvio Padrão para níveis de IGF-1 em
+                    Pediatria e Jovens Adultos (0-21 Anos).</p>
+            </div>
+        </div>
+        <div class="lang-selector">
+            <button class="lang-btn active" data-lang="pt">PT</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="glass-panel calculator-panel">
+            <form id="sds-form">
+                <div class="form-group">
+                    <label for="kit" data-i18n="kitLabel">Kit de Ensaio / Método</label>
+                    <select id="kit" name="kit" required>
+                        <option value="roche">Roche Elecsys (Chemiluminescence)</option>
+                        <option value="mediagnost">Mediagnost Elisa (E20)</option>
+                        <option value="mediagnost_ria">Mediagnost RIA (E22)</option>
+                        <option value="liaison">Liaison XL Diasorin</option>
+                        <option value="isys">IDS-iSYS</option>
+                        <option value="immulite_pre">Immulite 2000 (Pré-2017)</option>
+                        <option value="immulite_post">Immulite 2000 (Pós-2017)</option>
+                        <option value="cisbio">Cisbio</option>
+                        <option value="generic" data-i18n="genericKit">Média Genérica (Aproximação global)</option>
+                    </select>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="age" data-i18n="ageLabel">Idade (Anos)</label>
+                        <div class="age-input-group">
+                            <button type="button" class="age-btn" id="age-minus">-</button>
+                            <input type="number" id="age" name="age" min="0" max="21" step="1" required value="10">
+                            <button type="button" class="age-btn" id="age-plus">+</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="sex" data-i18n="sexLabel">Sexo</label>
+                        <select id="sex" name="sex" required>
+                            <option value="male" data-i18n="maleOption">Masculino</option>
+                            <option value="female" data-i18n="femaleOption">Feminino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="igfValue" data-i18n="igfValueLabel">Medição IGF-1</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="igfValue" name="igfValue" step="0.1" required placeholder="Ex: 250">
+                        <select id="unit" name="unit" class="unit-select">
+                            <option value="ngml">ng/mL</option>
+                            <option value="nmoll">nmol/L</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="calculate-btn" data-i18n="calculateBtn">Calcular Score SDS</button>
+            </form>
+
+            <div class="result-section" id="result-section">
+                <h3 data-i18n="resultTitle">Score de Desvio Padrão (Z-Score)</h3>
+                <div class="sds-score" id="sds-score">0.00</div>
+                <div class="sds-interpretation" id="sds-interpretation">Intervalo Normal</div>
+
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                    <span data-i18n="convertedLabel">Valor Convertido:</span> <span id="converted-value">-</span> ng/mL
+                </p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    <span data-i18n="refRangeLabel">Intervalo Ref.:</span> <span id="ref-range">-</span> ng/mL
+                </p>
+
+                <div class="gauge-container">
+                    <div class="gauge-fill" id="gauge-fill"></div>
+                </div>
+                <div class="gauge-markers">
+                    <span>-3 SD</span>
+                    <span>-2 SD</span>
+                    <span>0</span>
+                    <span>+2 SD</span>
+                    <span>+3 SD</span>
+                </div>
+
+                <!-- Percentile Graph Container -->
+                <div class="chart-container">
+                    <canvas id="igfChart"></canvas>
+                </div>
+
+                <div class="result-actions"
+                    style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: center;">
+                    <button type="button" id="btn-download-pdf" class="action-btn" data-i18n="downloadPdfBtn"
+                        style="background: white; color: var(--nn-blue); border: 2px solid var(--nn-blue); padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Descarregar
+                        PDF</button>
+                    <button type="button" id="btn-send-email" class="action-btn" data-i18n="sendEmailBtn"
+                        style="background: white; color: var(--nn-blue); border: 2px solid var(--nn-blue); padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">Enviar
+                        por Email</button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="glass-panel info-panel">
+            <h2 data-i18n="infoTitle">Compreender o SDS do IGF-1</h2>
+
+            <h3 data-i18n="infoWhyTitle">Porquê usar o SDS (Z-Score)?</h3>
+            <p data-i18n="infoWhyText">Como os valores normais variam fortemente por idade e sexo, os valores brutos são
+                difíceis de interpretar. Um Score de Desvio Padrão (SDS) compara o valor do doente com a média de uma
+                população saudável da mesma idade e sexo.</p>
+            <ul>
+                <li data-i18n="infoNormal"><strong>Entre -2 e +2:</strong> Considerado normal.</li>
+                <li data-i18n="infoLow"><strong>Abaixo de -2:</strong> Potencial deficiência de GH.</li>
+                <li data-i18n="infoHigh"><strong>Acima de +2:</strong> Potencial excesso de GH.</li>
+            </ul>
+
+            <div class="cnnhc-notice">
+                <strong data-i18n="cnnhcNoticeTitle">Aviso Clínico (INFARMED / CNNHC)</strong>
+                <p style="margin-top:0.5rem" data-i18n="cnnhcNoticeText">A <em>Comissão Nacional para a Normalização da
+                        Hormona do Crescimento (CNNHC)</em> do Infarmed reitera que <strong>não existe uma tabela
+                        universal de IGF-1</strong>. Os valores são estritamente dependentes do método de ensaio
+                    utilizado. A avaliação clínica oficial em Portugal requer a consulta obrigatória dos intervalos de
+                    referência validados e emitidos pelo laboratório que realizou a análise.</p>
+            </div>
+
+            <h3 data-i18n="infoSourcesTitle">Fontes dos Dados (Aproximações)</h3>
+            <p data-i18n="infoSourcesText">Esta calculadora demonstra distribuições estimadas baseadas nas calibrações
+                de referência (ex: OMS 02/254) presentes na literatura para os seguintes ensaios:</p>
+            <ul id="sources-list">
+                <!-- Injected via JS based on language -->
+            </ul>
+        </aside>
+    </main>
+
+    <footer>
+        <p>Desenvolvido por Roxane Guerreiro durante o seu estágio na Novo Nordisk (Medical Affairs in Rare Disease).
+        </p>
+        <p style="margin-top:0.5rem; opacity:0.7; font-size: 0.75rem" data-i18n="footerDisclaimer">Para fins académicos
+            e de demonstração. Não utilizar para diagnóstico médico definitivo. Consulte o relatório analítico oficial
+            do seu laboratório.</p>
+    </footer>
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
